@@ -13,7 +13,7 @@ if isempty(PixelRegion)
 else
     Img.width = PixelRegion(2,2)-PixelRegion(2,1)+1;
     Img.height = PixelRegion(1,2)-PixelRegion(1,1)+1;
-    Img.img = zeros(Img.height,Img.width);
+    Img.img = zeros(Img.height,Img.width,Img.nFrame);
     
 end
 if (flipZ == 1)
