@@ -18,14 +18,14 @@ To do so :
 
 go into the ants_rigid_registration function in utils and change 
 
-ants_exe_path = ['D:\Code\repos\spim_gcmp_processing\',...
+     ants_exe_path = ['D:\Code\repos\spim_gcmp_processing\',...
 
     'matlab-win\utils\ANTs_2.1.0_Windows']; 
     
 to the folder where you have this folder. 
 Also, on line 17: 
 
--- HERE--> command = ['d: &&',... % Folder with antsRegistration.exe 
+      command = ['d: &&',... % Folder with antsRegistration.exe 
 
 change the small letter d to the disk letter that you are using 
 
