@@ -1,8 +1,12 @@
 function ants_rigid_registration(movingImageFile, movingMaskFile,...
-    fixedImageFile, fixedMaskFile, outputFile,writeImg)
+    fixedImageFile, fixedMaskFile, outputFile,writeImg,ants_exe_path)
 
-ants_exe_path = ['D:\Code\repos\spim_gcmp_processing\',...
-    'matlab-win\utils\ANTs_2.1.0_Windows'];
+% where ants exe are located
+if isempty(ants_exe_path)
+    ants_exe_path = ['D:\Code\repos\spim_gcmp_processing\',...
+        'matlab-win\utils\ANTs_2.1.0_Windows'];
+end
+disk = ants_exe_path(1);
 
 % usually 0.25 is enough, increase it for small images ( maybe 0.4)
 SamplingRate = '0.25'; 
@@ -14,7 +18,7 @@ else
     outputImg = ']';
 end
     if (isempty(movingMaskFile)||isempty(fixedMaskFile))
-                command = ['d: &&',... % Folder with antsRegistration.exe 
+                command = [disk,': &&',... % Folder with antsRegistration.exe 
             'cd ',ants_exe_path,' &&',... % Folder with antsRegistration.exe 
             ' antsRegistration.exe',... % Folder with antsRegistration.exe 
             '  --dimensionality 3',...

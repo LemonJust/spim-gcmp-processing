@@ -52,7 +52,7 @@ target_t = 1;
 %
 % it might be a good idea at the begining to register only the "worst"
 % frame or just a couple of frames to get the idea of how long it takes
-timepoints_to_register = [2,3,9];
+timepoints_to_register = [2];
 
 % nothing to write here, 
 % this one checks if the timepoints you entered are valid 
@@ -108,11 +108,14 @@ mkdir(ants_out_folder);
 Img = read_tiff3d_movie_timepont(process_file,52,target_t,[]);
 write_nii3d(Img.img,fixed_placeholder,header,16,resolution);
 
+% path to the ants exe files 
+ants_exe_path = [code_path,'matlab-win\utils\ANTs_2.1.0_Windows'];
+
 % register all timepoints to the target
 transform = register_in_loop(timepoints,...
     target_t,timepoints_to_register,...
     process_file,header,zslices,resolution,nBit,...
-    moving_placeholder,fixed_placeholder,ants_out_folder);
+    moving_placeholder,fixed_placeholder,ants_out_folder,ants_exe_path);
 
 transform_file = [reg_folder,'mc_transforms_to_t',num2str(target_t),'.mat'];
 save(transform_file,'transform');
@@ -211,7 +214,7 @@ end
 function transform = register_in_loop(timepoints,...
     target_t,timepoints_to_register,...
     process_file,header,zslices,resolution,nBit,...
-    moving_placeholder,fixed_placeholder,ants_out_folder)
+    moving_placeholder,fixed_placeholder,ants_out_folder,ants_exe_path)
 % performs the registration of the selected timepoints
 
     % prepare transforms for full timepoints
@@ -235,7 +238,7 @@ function transform = register_in_loop(timepoints,...
                 ouput_file = [ants_out_folder,ouput_file];
                 ants_rigid_registration(moving_placeholder, [],...
                     fixed_placeholder, [],...
-                    ouput_file,0);
+                    ouput_file,0,ants_exe_path);
                 
                 % record transform
                 ouput_transform = [ouput_file,'0GenericAffine'];
