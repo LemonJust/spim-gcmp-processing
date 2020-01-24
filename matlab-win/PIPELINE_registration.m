@@ -11,10 +11,10 @@ code_path = 'D:\Code\repos\spim_gcmp_processing\';
 
 % MainFolder : subfolder 'registered' will be created here and registration
 % results will be saved in it
-main_folder = 'D:\Code\repos\spim_gcmp_processing';
+main_folder = 'D:\Code\repos\spim_gcmp_processing\';
 
 % MainFolder : the tif file with the movie for the motion correction
-process_file = [main_folder,'\data\test_downsampled.tif'];
+process_file = [main_folder,'data\test_downsampled.tif'];
 
 % resolution : imaging resolution in xyz in micron
 resolution = [1.74 1.74 5];
@@ -29,8 +29,8 @@ zslices = 52;
 
 % *_placeholder : nifti files created during the registration because ants
 % (at least in a form of exe ...) needs a path to a nifti file
-moving_placeholder = [main_folder,'\data\temp_moving.nii'];
-fixed_placeholder = [main_folder,'\data\temp_fixed.nii'];
+moving_placeholder = [main_folder,'data\temp_moving.nii'];
+fixed_placeholder = [main_folder,'data\temp_fixed.nii'];
 
 % nothing to write here, 
 % this one checks if the file you entered really exists 
@@ -40,7 +40,7 @@ fixed_placeholder = [main_folder,'\data\temp_fixed.nii'];
 
 % target_t: choose the target time point,
 % everything will be ergistered to it
-target_t = 1;
+target_t = 22;
 
 % timepoints_to_register :
 % by default (when timepoints_to_register is left empty : [] )
@@ -52,12 +52,12 @@ target_t = 1;
 %
 % it might be a good idea at the begining to register only the "worst"
 % frame or just a couple of frames to get the idea of how long it takes
-timepoints_to_register = [2];
+timepoints_to_register = [];
 
 % nothing to write here, 
 % this one checks if the timepoints you entered are valid 
 % resets timepoints_to_register if needed
-timepoints_to_register = validate_reg(timepoints,target_t,...
+[timepoints_to_register,target_t] = validate_reg(timepoints,target_t,...
     timepoints_to_register)
 %% Input 3: Check results
 
@@ -72,7 +72,7 @@ timepoints_to_register = validate_reg(timepoints,target_t,...
 %
 % set to timepoints_to_show = timepoints_to_register
 % if you want all the registered images saved to disk 
-timepoints_to_show = 9;
+timepoints_to_show = timepoints_to_register;
 
 % do you want these images to be saved as a movie or as individual volumes?
 % movie = 1 , individual volumes = 0
@@ -94,7 +94,7 @@ header_file = [code_path,'matlab-win\utils\niftiInfo_channels_bin221'];
 header = load(header_file);
 
 % create folder for registration results
-reg_folder = [main_folder,'\registered\'];
+reg_folder = [main_folder,'registered\'];
 mkdir(reg_folder);
 
 % create folder for ants transforms
@@ -109,7 +109,7 @@ Img = read_tiff3d_movie_timepont(process_file,52,target_t,[]);
 write_nii3d(Img.img,fixed_placeholder,header,16,resolution);
 
 % path to the ants exe files 
-ants_exe_path = [code_path,'matlab-win\utils\ANTs_2.1.0_Windows'];
+ants_exe_path = [code_path,'matlab-win\utils\ANTs_2.1.0_Windows\'];
 
 % register all timepoints to the target
 transform = register_in_loop(timepoints,...
@@ -165,7 +165,7 @@ disp(['Throwing away ',num2str(no_frame - timepoints*zslices),' z slices.']);
 
 end
 
-function timepoints_to_register = validate_reg(timepoints,...
+function [timepoints_to_register,target_t] = validate_reg(timepoints,...
     target_t,timepoints_to_register)
 % checks if the timepoints values entered are valid
 % if timepoints_to_register are outside the timepoints range - 
@@ -177,6 +177,9 @@ if target_t>timepoints
     disp("Resetting target_t to 1.");
     target_t = 1;
 end
+if isempty(timepoints_to_register)
+    timepoints_to_register = [1:timepoints];
+end
 if any(timepoints_to_register>timepoints)
     disp("OOPS! Some timepoints_to_register ");
     disp("are larger than the total number of timepoints");
@@ -184,6 +187,7 @@ if any(timepoints_to_register>timepoints)
     good_tp = timepoints_to_register<timepoints;
     timepoints_to_register = timepoints_to_register(good_tp);
 end
+
 end
 
 function timepoints_to_show = validate_show(timepoints_to_register,...
