@@ -72,7 +72,7 @@ timepoints_to_register = [];
 %
 % set to timepoints_to_show = timepoints_to_register
 % if you want all the registered images saved to disk 
-timepoints_to_show = timepoints_to_register;
+img_to_save = timepoints_to_register;
 
 % do you want these images to be saved as a movie or as individual volumes?
 % movie = 1 , individual volumes = 0
@@ -81,7 +81,7 @@ is_movie = 1;
 % nothing to write here, 
 % this one checks if the timepoints_to_show you entered are valid 
 % resets timepoints_to_show if needed
-timepoints_to_show = validate_show(timepoints_to_register,timepoints_to_show)
+img_to_save = validate_show(timepoints_to_register,img_to_save)
 %% Run 1: prepares files etc. 
 % Everything here should just work, no need to change stuff here
 
@@ -132,7 +132,7 @@ if is_movie
     ouput_file = validate_filename(ouput_name);
 end
 
-for t = timepoints_to_show
+for t = img_to_save
     disp(['Working on ',num2str(t)]);
     
     if ~is_movie
