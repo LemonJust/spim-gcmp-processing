@@ -59,19 +59,19 @@ timepoints_to_register = [];
 % resets timepoints_to_register if needed
 [timepoints_to_register,target_t] = validate_reg(timepoints,target_t,...
     timepoints_to_register)
-%% Input 3: Check results
+%% Input 3: Save results results to disk as images/movie
 
-% timepoints_to_show: 
-% by default (when timepoints_to_show is left empty : [] )
-% WON'T save any images. 
+% img_to_save: 
+% by default (when img_to_save is left empty : [] )
+% WON'T save any images to disk. 
 %
-% if you provide timepoints_to_show = [2] or 2:4 or [2 16 42]
-% only these timepoints will be saved to disk 
+% if you provide img_to_save = [2] or 2:4 or [2 16 42]
+% only the registered images at these timepoints will be saved to disk 
 % It means that only these transformed images will be generated , 
-% it doesn't affect the transforms - they are always saved.
+% it doesn't affect the transforms - they are all always saved.
 %
-% set to timepoints_to_show = timepoints_to_register
-% if you want all the registered images saved to disk 
+% set img_to_save = timepoints_to_register
+% if you want all the registered images to be saved to disk 
 img_to_save = timepoints_to_register;
 
 % do you want these images to be saved as a movie or as individual volumes?
@@ -79,8 +79,8 @@ img_to_save = timepoints_to_register;
 is_movie = 1;
 
 % nothing to write here, 
-% this one checks if the timepoints_to_show you entered are valid 
-% resets timepoints_to_show if needed
+% this one checks if the img_to_save you entered are valid 
+% resets img_to_save if needed
 img_to_save = validate_show(timepoints_to_register,img_to_save)
 %% Run 1: prepares files etc. 
 % Everything here should just work, no need to change stuff here
@@ -190,15 +190,15 @@ end
 
 end
 
-function timepoints_to_show = validate_show(timepoints_to_register,...
-    timepoints_to_show)
+function img_to_save = validate_show(timepoints_to_register,...
+    img_to_save)
 % checks if the timepoints values entered are valid
-isreg = ismember(timepoints_to_show,timepoints_to_register);
+isreg = ismember(img_to_save,timepoints_to_register);
 if ~all(isreg)
-    disp("OOPS! Some timepoints_to_show ");
+    disp("OOPS! Some img_to_save ");
     disp("are not in timepoints_to_register");
     disp("and will be ignored ! ");
-    timepoints_to_show = timepoints_to_show(isreg);
+    img_to_save = img_to_save(isreg);
 end
 
 end
