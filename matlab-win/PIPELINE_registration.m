@@ -13,8 +13,9 @@ code_path = 'D:\Code\repos\spim_gcmp_processing\';
 % results will be saved in it
 main_folder = 'D:\Code\repos\spim_gcmp_processing\';
 
-% MainFolder : the tif file with the movie for the motion correction
-process_file = [main_folder,'data\test_downsampled.tif'];
+% MainFolder : tif files with the movie for the motion correction
+process_files{1} = [main_folder,'data\test_downsampled_1.tif'];
+process_files{2} = [main_folder,'data\test_downsampled_2_with_extra.tif'];
 
 % resolution : imaging resolution in xyz in micron
 resolution = [1.74 1.74 5];
@@ -35,7 +36,9 @@ fixed_placeholder = [main_folder,'data\temp_fixed.nii'];
 % nothing to write here, 
 % this one checks if the file you entered really exists 
 % will throw an error if there's no file
-[no_frame,timepoints] = validate_file(process_file,zslices);
+[no_frame ,timepoints] = validate_file(process_files,zslices);
+tp_lookup = get_tp_lookup(no_frame,zslices);
+
 %% Input 2: Registration
 
 % target_t: choose the target time point,
@@ -105,7 +108,7 @@ mkdir(ants_out_folder);
 %% Run 2: Registration
 
 % write down the target_t to the disk as nifti
-Img = read_tiff3d_movie_timepont(process_file,52,target_t,[]);
+Img = read_tiff3d_timepont(process_files,tp_lookup,target_t,[]);
 write_nii3d(Img.img,fixed_placeholder,header,16,resolution);
 
 % path to the ants exe files 
@@ -114,7 +117,7 @@ ants_exe_path = [code_path,'matlab-win\utils\ANTs_2.1.0_Windows\'];
 % register all timepoints to the target
 transform = register_in_loop(timepoints,...
     target_t,timepoints_to_register,...
-    process_file,header,zslices,resolution,nBit,...
+    process_files,tp_lookup,header,resolution,nBit,...
     moving_placeholder,fixed_placeholder,ants_out_folder,ants_exe_path);
 
 transform_file = [reg_folder,'mc_transforms_to_t',num2str(target_t),'.mat'];
@@ -142,7 +145,7 @@ for t = img_to_save
     
     disp(string(['Saving to ',ouput_file]));
 
-    Img = read_tiff3d_movie_timepont(process_file,zslices,t,[]);
+    Img = read_tiff3d_timepont(process_files,tp_lookup,t,[]);
     apply_motion_correction(Img.img,resolution,transform{t},...
         ouput_file,is_movie);
 end
@@ -150,19 +153,20 @@ end
 
 %% HELPER FUNCTIONS: *******************************************
 
-function [no_frame,timepoints] = validate_file(process_file,zslices)
-% Get the TIFF file information 
+function [no_frame,timepoints] = validate_file(process_files,zslices)
+% Get the TIFF file information
 % returns number of frames in the file
 
-tiffInfo = imfinfo(process_file);
-no_frame = numel(tiffInfo);
-
+nFiles = length(process_files);
+no_frame = zeros(1,nFiles);
+for iFile = 1:nFiles
+    tiffInfo = imfinfo(process_files{iFile});
+    no_frame(iFile) = numel(tiffInfo);
+end
 % get how many full timepoints there are
-timepoints = floor(no_frame/zslices);
-
-disp(['Getting first ',num2str(timepoints),' timepoints.']);
-disp(['Throwing away ',num2str(no_frame - timepoints*zslices),' z slices.']);
-
+timepoints = floor(sum(no_frame)/zslices);
+disp(['Total of ',num2str(timepoints),' timepoints.']);
+disp(['With extra ',num2str(mod(sum(no_frame),zslices)),' z slices.']);
 end
 
 function [timepoints_to_register,target_t] = validate_reg(timepoints,...
@@ -217,7 +221,7 @@ end
 
 function transform = register_in_loop(timepoints,...
     target_t,timepoints_to_register,...
-    process_file,header,zslices,resolution,nBit,...
+    process_files,tp_lookup,header,resolution,nBit,...
     moving_placeholder,fixed_placeholder,ants_out_folder,ants_exe_path)
 % performs the registration of the selected timepoints
 
@@ -234,7 +238,7 @@ function transform = register_in_loop(timepoints,...
                     isempty(timepoints_to_register))
                 
                 % read and write t timepoint to nifti file
-                Img = read_tiff3d_movie_timepont(process_file,zslices,t,[]);
+                Img = read_tiff3d_timepont(process_files,tp_lookup,t,[]);
                 write_nii3d(Img.img,moving_placeholder,header,nBit,resolution)
                 
                 % run registration
@@ -251,6 +255,38 @@ function transform = register_in_loop(timepoints,...
             end
         end
     end
+end
+
+function tp_lookup = get_tp_lookup(no_frame,zslices)
+% find the file and frame in that file for each timepoint
+% tp_lookup : 
+% 3D array 
+% (timepoint, file for each z slice, frame in that file for each z slice) 
+% whole_tp : 
+% number of full timepoints in the whole recording
+
+frames = sum(no_frame);
+nFiles = length(no_frame);
+% whole timepoints in the recording
+whole_tp = fix(frames/zslices);
+n_whole_frames = whole_tp*zslices;
+
+% prepare array with files and frames from them
+frame_seq = [];
+file_seq = [];
+for iFile = 1:nFiles
+    frame_seq = [frame_seq,1:no_frame(iFile)];
+    file_seq = [file_seq,repelem(iFile,no_frame(iFile))];
+end
+% get only wholwe tp 
+frame_seq = frame_seq(1:n_whole_frames);
+file_seq = file_seq(1:n_whole_frames);
+% reshape to get the corresponding file and frame
+frame_seq = (reshape(frame_seq,[zslices,whole_tp]))';
+file_seq = (reshape(file_seq,[zslices,whole_tp]))';
+% merge: the order is 
+%( timepoint, file corresponding to the slice, frame from that file)
+tp_lookup = cat(3,file_seq,frame_seq);
 end
 
 
