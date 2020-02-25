@@ -14,6 +14,12 @@ code_path = 'D:\Code\repos\spim_gcmp_processing\';
 main_folder = 'D:\Code\repos\spim_gcmp_processing\';
 
 % MainFolder : tif files with the movie for the motion correction
+% list all the files here in the proper order, 
+% Example: 
+% process_files{1} = [main_folder,'data\movie_part_1.tif'];
+% process_files{2} = [main_folder,'data\movie_part_2.tif'];
+% process_files{3} = [main_folder,'data\movie_part_3.tif'];
+
 process_files{1} = [main_folder,'data\test_downsampled_1.tif'];
 process_files{2} = [main_folder,'data\test_downsampled_2_with_extra.tif'];
 
